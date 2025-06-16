@@ -18,7 +18,6 @@
   "description": "Proyecto con Express, WebSockets y Machine Learning",
   "dependencies": {
     "axios": "^1.7.7",
-    "brain.js": "^2.0.0-beta.24",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -27,7 +26,6 @@
     "ws": "^8.18.0"
   },
   "engines": {
-  "node": "20.x"
-}
-
+    "node": "20.x"
+  }
 }
