@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 
 // Dirección del servidor WebSocket
 //const ws = new WebSocket('ws://192.168.18.20:3000/');
-const ws = new WebSocket('ws://192.168.18.21:3000');
+const ws = new WebSocket('wss://server-floatbin.onrender.com/');
 
 ws.on('open', function open() {
   console.log('Conectado al servidor WebSocket');

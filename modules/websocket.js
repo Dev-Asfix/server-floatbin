@@ -9,14 +9,11 @@ const WebSocket = require('ws'); // Necesario para la clase WebSocket.
  * @returns {number} El tiempo promedio de llenado en milisegundos.
  */
 function calculateAverageFillTime(fullTimes) {
-    if (fullTimes.length >= 2) {
-        // Calcula la diferencia de tiempo entre el último y el primer registro de "Lleno".
-        // Luego divide por el número de intervalos de llenado completos.
+    if (fullTimes.length >= 2) { // Cambia a >=3 si quieres que el backend también espere 3 llenados
         const totalFillTime = new Date(fullTimes[fullTimes.length - 1]) - new Date(fullTimes[0]);
         return totalFillTime / (fullTimes.length - 1);
     }
-    // Retorna 0 si no hay suficientes datos para calcular un promedio significativo.
-    return 0;
+    return null; // <-- Cambiado de 0 a null
 }
 
 /**
