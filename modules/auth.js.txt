@@ -1,0 +1,87 @@
+// modules/auth.js
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+// Clave secreta para firmar y verificar JWTs.
+// ¡ADVERTENCIA! En producción, debe ser una cadena aleatoria muy larga
+// y almacenarse de forma segura (ej. en variables de entorno, no en el código).
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_very_strong_and_random';
+
+// Ejemplo simple de usuarios (¡NO USAR EN PRODUCCIÓN!)
+const users = [
+    { username: 'admin', password: 'password123' }, // Contraseña sin hashear (por ahora)
+    { username: 'user', password: 'userpass' }
+];
+
+// Función para hashear la contraseña (llamar antes de guardar en DB)
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+}
+
+// Inicializar usuarios con contraseñas hasheadas (solo al inicio para este ejemplo)
+async function initializeUsers() {
+    for (let i = 0; i < users.length; i++) {
+        users[i].password = await hashPassword(users[i].password);
+    }
+    console.log('Contraseñas de ejemplo hasheadas.');
+}
+initializeUsers(); // Llama esto una vez al iniciar el servidor
+
+/**
+ * Middleware para proteger rutas.
+ * Verifica si un token JWT válido está presente en los encabezados de la solicitud.
+ */
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Formato: Bearer TOKEN
+
+    if (!token) {
+        console.warn('Acceso denegado: No se proporcionó token.');
+        return res.sendStatus(401); // Unauthorized
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            console.warn('Token inválido o expirado:', err.message);
+            return res.sendStatus(403); // Forbidden (token inválido/expirado)
+        }
+        req.user = user; // Guarda la información del usuario en la solicitud
+        next(); // Continúa con la siguiente función de middleware/ruta
+    });
+}
+
+/**
+ * Configura las rutas de autenticación (login).
+ * @param {express.Application} app - La instancia de la aplicación Express.
+ */
+module.exports = (app) => {
+    app.post('/login', async (req, res) => {
+        const { username, password } = req.body;
+
+        // En un entorno real, buscarías el usuario en una base de datos.
+        const user = users.find(u => u.username === username);
+
+        if (!user) {
+            return res.status(400).json({ message: 'Usuario o contraseña incorrectos.' });
+        }
+
+        // Comparar la contraseña proporcionada con la contraseña hasheada almacenada.
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Usuario o contraseña incorrectos.' });
+        }
+
+        // Si las credenciales son válidas, crea un token JWT.
+        // Aquí puedes incluir cualquier dato que quieras que esté disponible en el cliente (sin datos sensibles).
+        const payload = { id: user.id, username: user.username };
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' }); // Token expira en 1 hora
+
+        res.json({ token });
+    });
+};
+
+// Exporta el middleware para que pueda ser usado en otras rutas
+module.exports.authenticateToken = authenticateToken;
+module.exports.JWT_SECRET = JWT_SECRET; // Exporta para uso en WebSocket

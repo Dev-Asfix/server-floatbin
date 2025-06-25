@@ -2,19 +2,22 @@ const WebSocket = require('ws');
 
 // Dirección del servidor WebSocket
 //const ws = new WebSocket('ws://192.168.18.20:3000/');
-const ws = new WebSocket('wss://server-floatbin.onrender.com/');
+const ws = new WebSocket('ws://192.168.18.21:3000/');
+
+// --- ¡NUEVA LÍNEA CLAVE AQUÍ! Define el ID del tacho que este simulador representa ---
+const MY_DEVICE_ID = "Tacho-03"; // Asegúrate de que este ID coincida con el que espera tu frontend
 
 ws.on('open', function open() {
-  console.log('Conectado al servidor WebSocket');
+  console.log(`Conectado al servidor WebSocket como: ${MY_DEVICE_ID}`); // Mensaje actualizado
   simulateSensorData();
 });
 
 ws.on('message', function incoming(data) {
-  console.log('Mensaje recibido del servidor:', data);
+  console.log(`Mensaje recibido del servidor para ${MY_DEVICE_ID}:`, data); // Mensaje actualizado
 });
 
 ws.on('close', function close() {
-  console.log('Conexión cerrada');
+  console.log(`Conexión cerrada para ${MY_DEVICE_ID}`); // Mensaje actualizado
 });
 
 // Simular los datos del sensor
@@ -27,6 +30,8 @@ function simulateSensorData() {
 
     // Crear un objeto con los datos simulados
     const data = JSON.stringify({
+      // --- ¡AÑADE ESTA LÍNEA! ---
+      deviceId: MY_DEVICE_ID, // Incluye el identificador del dispositivo
       estado: estado,
       distancia: distance,
       timestamp: Date.now() // Usar timestamp en milisegundos
@@ -34,8 +39,8 @@ function simulateSensorData() {
 
     // Enviar los datos al servidor WebSocket
     ws.send(data);
-    console.log(`Datos enviados: ${data}`);
-  }, 4000); // Enviar cada 2 segundos
+    console.log(`Datos enviados por ${MY_DEVICE_ID}: ${data}`); // Mensaje actualizado
+  }, 20000); // Enviar cada 4 segundos (como en tu código original)
 }
 
 // Determinar el estado según la distancia simulada
